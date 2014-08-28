@@ -14,7 +14,7 @@ function toJSArray(a) {
 }
 
 function comparePosition(a, b){
-    var THRESHOLD = 5; // allowable shift of text layer from ideal structures position
+    var THRESHOLD = 5; // allowed shift of text layer from ideal matrix structure position
     var ydiff = b.absoluteRect().y() - a.absoluteRect().y();
     var xdiff = b.absoluteRect().x()) - a.absoluteRect().x();
     
@@ -40,7 +40,8 @@ function collectChildren(layers, sel) {
   }
 }
 
-
+//TODO: Put the previous state to Undo stack
+//TODO: Solve problem with app crushes sometimes
 var newSelection = []
 
 // look through selection to lookup inside groups and gather layers
