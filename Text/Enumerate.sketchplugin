@@ -60,7 +60,7 @@ var selSorted = newSelection.sort(comparePosition);
 for (var i = 0; i < itemsNumber; i++) {
     var layer = selSorted[i];
     var value = (i + 1).toString();
-    layer.name = layer.absoluteRect().x() + ", " + layer.absoluteRect().y();//value;
+    layer.name = value; //layer.absoluteRect().x() + ", " + layer.absoluteRect().y();
     layer.setStringValue(value);
     layer.adjustFrameToFit(); //TODO: maintain  adjustability even if user pressed Fixed. Any idea?
 }
