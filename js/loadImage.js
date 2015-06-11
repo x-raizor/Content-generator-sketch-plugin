@@ -3,34 +3,51 @@ var loadImages = function(dataPath, groupName, pictureName){
 		pictureName = pictureName || 'picture';
 
 	function loadImages(imgAmount){
-		var imagesCollection = [],
-			fileManager = [NSFileManager defaultManager];
+		var fileManager = [NSFileManager defaultManager];
+		var scriptPath = sketch.scriptPath;			
+		var pluginFolder = scriptPath.match(/Plugins\/([\w -])*/)[0] + "/";
+		var sketchPluginsPath = scriptPath.replace(/Plugins([\w \/ -])*.sketchplugin$/, "");
+		var imagesPath =  sketchPluginsPath + pluginFolder + dataPath;
+		var imagesFileNames = [fileManager contentsOfDirectoryAtPath:imagesPath error:nil];
+		var imageCount = [imagesFileNames count] -1;
+		var selectedPaths = [];
 
-		if(tools.majorVersion() == 3){			
-			var scriptPath = sketch.scriptPath;			
-			var pluginFolder = scriptPath.match(/Plugins\/([\w -])*/)[0] + "/";
-			var sketchPluginsPath = scriptPath.replace(/Plugins([\w \/ -])*.sketchplugin$/, "");
-			imagesPath =  sketchPluginsPath + pluginFolder + dataPath;
-		}	
-		log(imagesPath)
-		var imagesFileNames = [fileManager contentsOfDirectoryAtPath:imagesPath error:nil],
-			imgLen = [imagesFileNames count];
 
-		for(var i = 0; i < imgAmount; i++){
-			var r = Math.floor(Math.random() * imgLen);
-			var fileName = imagesPath+imagesFileNames[r];
-			if ([fileManager fileExistsAtPath: fileName]) {				
-				var newImage = [[NSImage alloc] initWithContentsOfFile:fileName];			
-				imagesCollection.push(newImage);
+		if(imgAmount > imageCount){
+			while(imgAmount--) {
+				var index = Math.floor(Math.random() * imageCount);
+				do {
+					index = index > imageCount ? 0 : index + 1;
+					var fileName = imagesFileNames[index];
+					var filePath = imagesPath + fileName;			
+				} while(![fileManager fileExistsAtPath: filePath] || fileName == '.DS_Store')
+
+				selectedPaths.push(filePath);
+			}
+		} 
+		else{
+			while(imgAmount--) {
+				do {
+					var index = Math.floor(Math.random() * imageCount);
+					var fileName = imagesFileNames[index];
+					var filePath = imagesPath + fileName;
+					var match = selectedPaths.filter(function(selectedPath){return filePath == selectedPath;});
+				} while(fileName == '.DS_Store' || ![fileManager fileExistsAtPath: filePath] || match.length >= 1);
+				selectedPaths.push(filePath);
 			}
 		}
-
-		return imagesCollection;
+		
+		return selectedPaths.map(function(imagePath){
+			if ([fileManager fileExistsAtPath: imagePath]) {				
+				var image = [[NSImage alloc] initWithContentsOfFile:imagePath];			
+				return image;
+			}
+		})
 	}
 
 	function main(){		
 		var allLayers = [[doc currentPage] layers],
-			imagesCollection = loadImages([selection count]);
+			imagesCollection = loadImages([selection count] + 1);
 
 		for(var i = 0; i < [selection count]; i++){
 			var layer = selection[i];
@@ -38,7 +55,6 @@ var loadImages = function(dataPath, groupName, pictureName){
                 var image = imagesCollection[i];
                 var fill = layer.style().fills().firstObject();
                 fill.setFillType(4);                
-                log(tools.minorVersion())
                 if(tools.minorVersion() >= 1){
                 	var coll = layer.style().fills().firstObject().documentData().images();              
                 	[fill setPatternImage:image collection:coll]
@@ -50,7 +66,7 @@ var loadImages = function(dataPath, groupName, pictureName){
             }
 		}
 
-		if([selection count] == 0) alert('Select at least one vector shape');
+		if([selection count] == 0) [doc showMessage:'Select at least one vector shape'];;
 	}
 	main();
 }
